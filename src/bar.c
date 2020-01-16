@@ -110,6 +110,9 @@ static CGPoint bar_align_line(struct bar *bar, struct bar_line line, int align_x
 
 static void bar_draw_line(struct bar *bar, struct bar_line line, float x, float y)
 {
+    CGContextSetRGBFillColor(bar->context, 0, 0, 0, 1);
+    CGContextSetTextPosition(bar->context, x + 1, y - 1);
+    CTLineDraw(line.line, bar->context);
     CGContextSetRGBFillColor(bar->context, line.color.r, line.color.g, line.color.b, line.color.a);
     CGContextSetTextPosition(bar->context, x, y);
     CTLineDraw(line.line, bar->context);
@@ -474,7 +477,8 @@ static float bar_create_frame(struct bar *bar, CFTypeRef *frame_region)
         y_offset    = menu.size.height;
     }
 
-    bar->frame = (CGRect) {{0, 0},{bounds.size.width, 26}};
+    int height = 26;
+    bar->frame = (CGRect) {{0, bounds.size.height - height},{bounds.size.width, height}};
     CGSNewRegionWithRect(&bar->frame, frame_region);
 
     return y_offset;
@@ -489,7 +493,7 @@ void bar_resize(struct bar *bar)
 
     SLSDisableUpdate(g_connection);
     SLSOrderWindow(g_connection, bar->id, -1, 0);
-    SLSSetWindowShape(g_connection, bar->id, 0.0f, y_offset, frame_region);
+    SLSSetWindowShape(g_connection, bar->id, 0.0f, bar->frame.origin.y, frame_region);
     bar_refresh(bar);
     SLSOrderWindow(g_connection, bar->id, 1, 0);
     SLSReenableUpdate(g_connection);
